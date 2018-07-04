@@ -126,11 +126,10 @@ spring <- function(x, y,
   SYYm1  <- solve(SYY)
   SXY    <- crossprod(x,y)/n
 
-
   return(mclapply(lambda2, function(lbd2) {
-    if (verbose>0) {cat("\n FITTING FOR LAMBDA2 =", lbd2, "\n")}
-    out <- spring.learn(x=x, y=y, xbar=xbar,ybar,normx=normx,normy=normy,
-                        SXX=SXX, SYY=SYY, SYYm1=SYYm1, SXY=SXY,
+    if (verbose > 0) {cat("\n FITTING FOR LAMBDA2 =", lbd2, "\n")} ## only active when mc.cores = 1
+    out <- spring.learn(x = x, y = y, xbar = xbar, ybar = ybar, normx = normx, normy = normy,
+                        SXX = SXX, SYY = SYY, SYYm1 = SYYm1, SXY = SXY,
                         lambda1     = lambda1,
                         lambda2     = lbd2   ,
                         struct      = struct ,
@@ -322,9 +321,6 @@ spring.learn <- function(x, y, xbar, ybar, normx, normy,
         ## A is mxn, B is pxq
         ## (A kron B )ij = A(1+floor((i-1/p)), 1+floor((j-1)/p)) * B(1+(i-1)mod p, 1 + (j-1) mod q)
 
-        ## old way:
-        ## M1 <- suppressMessages(kronecker(cov.hat[[k]],struct))[A,A]
-        ## M2 <- suppressMessages(kronecker(cov.hat[[k]], SXX.L2))[A,A]
         ind.cov <- 1 + floor((A-1)/p)
         ind.pre <- 1 + (A-1) %% p
         M1 <- cov.hat[[k]][ind.cov,ind.cov] * struct[ind.pre,ind.pre]
@@ -361,21 +357,20 @@ spring.learn <- function(x, y, xbar, ybar, normx, normy,
     cat("\n DONE.\n")
   }
 
-  ## Then we are done
-  return(new("spring",
-             coef.direct = par.hat  ,
-             coef.regres = B.hat    ,
-             covariance  = cov.hat  ,
-             intercept   = mu       ,
-             lambda1     = lambda1  ,
-             lambda2     = lambda2  ,
-             df          = df       ,
-             residuals   = residuals,
-             fitted      = fitted   ,
-             r.squared   = r.squared,
-             normx       = normx    ,
-             monitoring  = monitor  ))
-
+  new("spring",
+      coef.direct = par.hat  ,
+      coef.regres = B.hat    ,
+      covariance  = cov.hat  ,
+      intercept   = mu       ,
+      lambda1     = lambda1  ,
+      lambda2     = lambda2  ,
+      df          = df       ,
+      residuals   = residuals,
+      fitted      = fitted   ,
+      r.squared   = r.squared,
+      normx       = normx    ,
+      monitoring  = monitor  )
+  
 }
 
 learn.par.vec <- function(SXX.L2, SXY, lambda1.vec, cov, maxit=1000, thr=1e-4, verbose=verbose) {
@@ -400,7 +395,7 @@ learn.par.vec <- function(SXX.L2, SXY, lambda1.vec, cov, maxit=1000, thr=1e-4, v
       B.hat[[k]] <- -O.hat[[k]] %*% cov
     }
   }
-  return(list(par.hat=O.hat,B.hat=B.hat))
+  return(list(par.hat = O.hat,B.hat = B.hat))
 }
 
 learn.par <- function(xtx.L2, xty, lambda1, lambda1.old, cov, beta0=Matrix(0,p,q), relaxo=FALSE, maxit=1000, thr=1e-4, B.hat=NULL) {
@@ -409,9 +404,8 @@ learn.par <- function(xtx.L2, xty, lambda1, lambda1.old, cov, beta0=Matrix(0,p,q
   q <- ifelse(is.null(dim(cov)),1,ncol(cov))
 
   ## recursive strong rule to discard an entire column
-  if (is.null(B.hat)) {
-      B.hat <- -beta0 %*% cov
-  }
+  if (is.null(B.hat)) B.hat <- -beta0 %*% cov 
+  
   null <- apply( abs(xty - xtx.L2 %*% B.hat), 1, max) < (2 * lambda1 - lambda1.old)
   ##    cat("\ndiscarded: ", sum(null)*q)
   ##    cat(" kept: ", sum(!null)*q)
@@ -451,11 +445,9 @@ learn.cov <- function(SYY, SYYm1, SXX, O.xy) {
 
     R   <- SYY %*% U %*% Diagonal(x=1/eta) %*% Um1
     Oyy <- U %*% Diagonal(x=eta) %*% Um1 %*% SYYm1
-    ## R   <- SYY %*% U %*% Diagonal(x=1/eta) %*% Um1
-    ## Oyy <- U %*% Diagonal(x=eta) %*% Um1 %*% SYYm1
   }
 
-  return(list(R=R,Oyy=Oyy))
+  list(R = R, Oyy = Oyy)
 }
 
 learn.default.args <- function(n,p,user) {

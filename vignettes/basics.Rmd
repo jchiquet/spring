@@ -10,14 +10,14 @@ vignette: >
 ---
 
 First we load the library:
-```{r}
+```{r tic}
 library(spring)
 t0 <- proc.time()
 ```
 
 We specify a model (basically, a set of parameter): this stands for the regression coefficient and the covariance matrix.
 
-```{r}
+```{r model_spec}
  ## problem dimension
 p <- 20 # number of regressors
 q <- 3  # number of responses
@@ -40,7 +40,7 @@ true.model <- model$new(
 ```
 
 Now, produce an arbitrary design matrix and use the drawResponse method to get some data:
-```{r}
+```{r design_matrix}
 nb.samples <- 100
 X <- matrix(rnorm(nb.samples * p), nb.samples, p)
 
@@ -48,7 +48,7 @@ X <- matrix(rnorm(nb.samples * p), nb.samples, p)
 Y <- true.model$drawResponse(X)
 ```
 
-```{r, fig.width=6}
+```{r BIC, fig.width=6}
 out <- spring(X, Y)
 BIC <- pen.crit(out)$BIC
 plot(BIC$criterion)
@@ -60,7 +60,7 @@ BIC$model$plot()
 
 ## Stability selection:
 
-```{r, eval=FALSE}
+```{r stability_selection_4_spring}
 library(stabs)
 set.seed(5678)
 fitfunSpring <- function(x, y, q, ...){
@@ -79,8 +79,7 @@ fitfunSpring <- function(x, y, q, ...){
 }
 
 stab.spring <- stabsel(x=X, y=as.matrix(Y),
-                       PFER=1, B=4, q=2, mc.cores=1, # to debug
-                       ## PFER=1, B=50, q=max(5, 14),#min(2 * round(nrow(X)/log(ncol(X))/10)*10, ncol(X))),
+                       PFER=1, B=4, q=2, mc.cores=1, 
                        fitfun=fitfunSpring,
                        args.fitfun=list(lambda2 = 0, min.ratio = 0.5, nlambda1 = 20,
                                         struct = sparseMatrix(i=1:p, j=1:p,x=rep(1, p))))
