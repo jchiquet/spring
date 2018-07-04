@@ -410,9 +410,9 @@ learn.par <- function(xtx.L2, xty, lambda1, lambda1.old, cov, beta0=Matrix(0,p,q
 
   ## recursive strong rule to discard an entire column
   if (is.null(B.hat)) {
-      B.hat <- - beta0 %*% cov
+      B.hat <- -beta0 %*% cov
   }
-  null <- apply( abs(xty - xtx.L2 %*% B.hat), 1, max) < (2 *lambda1-lambda1.old)
+  null <- apply( abs(xty - xtx.L2 %*% B.hat), 1, max) < (2 * lambda1 - lambda1.old)
   ##    cat("\ndiscarded: ", sum(null)*q)
   ##    cat(" kept: ", sum(!null)*q)
 
@@ -424,36 +424,11 @@ learn.par <- function(xtx.L2, xty, lambda1, lambda1.old, cov, beta0=Matrix(0,p,q
     Atb <- as.vector(xty[!null, ])
   }
   if (sum(!null) != 0) {
-    beta.hat <- as.numeric(.Call("coordinate_lasso", as.vector(beta0[!null, ]), Atb, as.matrix(AtA), lambda1, thr, maxit, PACKAGE="spring")$xk)
-    return(sparseMatrix(i = rep(which(!null),q), j = rep(1:q,each=sum(!null)), x = beta.hat, dims=c(p,q)))
-  } else {
-    return(beta0)
+##    beta.hat <- as.numeric(.Call("coordinate_lasso", as.vector(beta0[!null, ]), Atb, as.matrix(AtA), lambda1, thr, maxit, PACKAGE="spring")$xk)
+    beta_ <- coordinate_l1(as.vector(beta0[!null, ]), Atb, as.matrix(AtA), lambda1, thr, maxit)
+    beta0 <- sparseMatrix(i = rep(which(!null),q), j = rep(1:q, each = sum(!null)), x = as.numeric(beta_), dims = c(p,q))
   }
-  ## } else {
-  ##   if (!is.null(beta0)) {
-  ##     beta0 <- as.numeric(beta0)
-  ##   } else {
-  ##     beta0 <- rep(0,p*q)
-  ##   }
-  ##   if (is.null(dim(cov))) {
-  ##     AtA <- as.matrix(cov * xtx.L2)
-  ##     Atb <- as.numeric(xty)
-  ##     q <- 1
-  ##   } else {
-  ##     AtA <- as.matrix(suppressMessages(kronecker(cov,xtx.L2)))
-  ##     Atb <- as.vector(xty)
-  ##     q <- ncol(cov)
-  ##   }
-  ##   beta.hat <- as.numeric(.Call("coordinate_lasso", beta0, Atb, AtA, lambda1, thr, maxit, PACKAGE="spring")$xk)
-  ##   return(Matrix(beta.hat, p, q))
-  ## }
-
-  ## if (relaxo) {
-  ##   A <- beta.hat != 0
-  ##   if (sum(A)>0)
-  ##     beta.hat[A] <- chol2inv(chol(AtA[A,A])) %*% Atb[A]
-  ## }
-
+  beta0
 }
 
 learn.cov <- function(SYY, SYYm1, SXX, O.xy) {

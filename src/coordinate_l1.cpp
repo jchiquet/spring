@@ -1,17 +1,14 @@
-#include "coordinate_lasso.h"
+#include "RcppArmadillo.h"
+
+// [[Rcpp::depends(RcppArmadillo)]]
 
 using namespace Rcpp;
 using namespace arma;
 
-SEXP coordinate_lasso(SEXP X0, SEXP XTY, SEXP XTX, SEXP PEN, SEXP THR, SEXP MAXIT) {
+// [[Rcpp::export]]
+Rcpp::NumericVector coordinate_l1(arma::vec x0, arma::vec xty, arma::mat xtx, double pen, double thr, int max_iter) {
   
-  vec x0   = as<vec>(X0)  ;
-  mat xtx  = as<mat>(XTX) ;
-  vec xty  = as<vec>(XTY) ;
-  double pen = as<double>(PEN);
-  double thr = as<double>(THR) ;
   vec diag = xtx.diag()   ;
-  int max_iter = as<uword>(MAXIT) ; // max. number of iteration
 
   vec xtxw = xtx * x0;
   
@@ -39,7 +36,6 @@ SEXP coordinate_lasso(SEXP X0, SEXP XTY, SEXP XTX, SEXP PEN, SEXP THR, SEXP MAXI
     R_CheckUserInterrupt();
   }
 
-  return List::create(Named("xk")   = xk,
-		      Named("xtxw") = xtxw);
+  return wrap(xk) ;
   
 }
