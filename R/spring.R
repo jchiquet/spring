@@ -424,7 +424,6 @@ learn.par <- function(xtx.L2, xty, lambda1, lambda1.old, cov, beta0=Matrix(0,p,q
     Atb <- as.vector(xty[!null, ])
   }
   if (sum(!null) != 0) {
-##    beta.hat <- as.numeric(.Call("coordinate_lasso", as.vector(beta0[!null, ]), Atb, as.matrix(AtA), lambda1, thr, maxit, PACKAGE="spring")$xk)
     beta_ <- coordinate_l1(as.vector(beta0[!null, ]), Atb, as.matrix(AtA), lambda1, thr, maxit)
     beta0 <- sparseMatrix(i = rep(which(!null),q), j = rep(1:q, each = sum(!null)), x = as.numeric(beta_), dims = c(p,q))
   }
